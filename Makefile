@@ -13,7 +13,7 @@ cc_std 			:= -std=c11
 cxx_std			:= -std=c++17
 
 # Define a extra flags and diretives for compilation
-extra_cflags 	:= -fopenmp 
+extra_cflags 	:= -fopenmp
 
 # Define directories
 bin_dir 		:= ./bin
@@ -24,19 +24,22 @@ include_dir 	:= ./include
 
 # Define compiler flags
 optional_cflags := -Wextra -Wall
-include_cflags := -I $(include_dir)
-cflags := $(cc_std) $(optional_cflags) $(extra_cflags) $(include_cflags)
-cxxflags := $(cxx_std) $(optional_cflags) $(extra_cflags) $(include_cflags)
-
-# Define all source files and obj files
-others_files = $(wildcard *.c) $(wildcard *.cpp) 
-source_files = $(wildcard $(src_dir)/*.c) $(wildcard $(src_dir)/*.cpp)
-others_obj_files = $(patsubst %.c, %.o, $(others_files))
-obj_files = $(patsubst $(src_dir)/%.c, $(obj_dir)/%.o, $(source_files)) $(others_obj_files)
-obj = $(notdir $(obj_files))
+include_cflags 	:= -I $(include_dir)
+cflags 			:= $(cc_std) $(optional_cflags) $(extra_cflags) $(include_cflags)
+cxxflags 		:= $(cxx_std) $(optional_cflags) $(extra_cflags) $(include_cflags)
 
 # Define RM command 
-rm := rm -fr
+rm 				:= rm -fr
+
+# Define all source files and header files
+
+header_files 	:= $(wildcard *.h)$(wildcard $(include_dir)/*.h)$(wildcard *.hpp) $(wildcard $(include_dir)/*.hpp)
+source_files 	:= $(wildcard *.c)$(wildcard $(src_dir)/*.c)$(wildcard *.cpp)$(wildcard $(src_dir)/*.cpp)
+
+# Define all header files
+hxx_files		:= $(patsubst $(include_dir)/%.h,$(obj_dir)/%.o,$(header_files))
+obj_files		:= $(patsubst $(include_dir)/%.hpp,$(obj_dir)/%.o,$(hxx_files))
+obj 			:= $(notdir $(obj_files))
 
 # Define Recipes
 .PHONY: all run build compile clean %.o t
@@ -50,7 +53,11 @@ run: $(wildcard $(bin_dir)/$(appname))
 
 # Build the app adding statics libs
 build: compile
-	$(cxx) $(cxxflags) $(target) -o $(appname) $(obj_files)
+	@if [ -f $(target) ]; then \
+		$(cxx) $(cxxflags) $(target) -o $(appname) $(obj_files); \
+	else \
+		$(cxx) $(cxxflags) $(src_dir)/$(target) -o $(appname) $(obj_files); \
+	fi
 
 # Compile all source files
 compile: clean $(obj)
@@ -60,11 +67,11 @@ clean:
 	@$(rm) $(bin_dir) $(obj_dir) $(wildcard *.o) $(wildcard *.exe)
 
 # Compile a static lib expecifying full path to compilation if exists a source code and a header file
-%.o: %.c
+%.o: %.c %.h
 	$(cc) $(cflags) -c $< -o $@
 
 # Compile a static lib in obj folder if exists the source code is in source folder and header file is in include folder
-%.o: $(src_dir)/%.c
+%.o: $(src_dir)/%.c $(include_dir)/%.h
 	@mkdir -p $(obj_dir);
 	$(cc) $(cflags) -c $< -o $(obj_dir)/$(notdir $@)
 
