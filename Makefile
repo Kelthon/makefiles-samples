@@ -42,14 +42,21 @@ obj_files		:= $(patsubst $(include_dir)/%.hpp,$(obj_dir)/%.o,$(hxx_files))
 obj 			:= $(notdir $(obj_files))
 
 # Define Recipes
-.PHONY: all run build compile clean %.o t
+.PHONY: all run build compile clean %.o %.exe
 
 # Build and runs the app
 all: build run
 
 # Run the app 
-run: $(wildcard $(bin_dir)/$(appname))
-	$(bin_dir)/$(appname)
+run:
+	@if [ -f $(appname)]; then\
+		$(appname); \
+	elif [ -f $(bin_dir)/$(appname) ]; then \
+		$(bin_dir)/$(appname); \
+	else \
+		echo "Not found $(appname)"; \
+	fi
+	
 
 # Build the app adding statics libs
 build: compile
@@ -68,20 +75,38 @@ clean:
 
 # Compile a static lib expecifying full path to compilation if exists a source code and a header file
 %.o: %.c %.h
-	$(cc) $(cflags) -c $< -o $@
+	@$(cc) $(cflags) -c $< -o $@
 
 # Compile a static lib in obj folder if exists the source code is in source folder and header file is in include folder
 %.o: $(src_dir)/%.c $(include_dir)/%.h
 	@mkdir -p $(obj_dir);
-	$(cc) $(cflags) -c $< -o $(obj_dir)/$(notdir $@)
+	@$(cc) $(cflags) -c $< -o $(obj_dir)/$(notdir $@)
 
-# Compiles and run a source file expecifying full path to compilation
-%.exe: %.c clean
-	$(cc) $(cflags) -o $(basename $@) $<
-	$(basename $@)
+%.o: %.cpp %.hpp
+	@$(cxx) $(cxxflags) -c $< -o $@
 
-# Compile and run a source file if the file is inside source folder
-%.exe: $(src_dir)/%.c clean
+%.o: $(src_dir)/%.cpp $(include_dir)/%.hpp
+	@mkdir -p $(obj_dir);
+	@$(cxx) $(cxxflags) -c $< -o $(obj_dir)/$(notdir $@)
+
+# Build and run a source file
+%.exe: %.c clean compile
+	@$(cc) $(cflags) $< -o $(basename $@) $(obj_files)
+	@$(basename $@)
+
+# Build and run a source file if it is in source folder
+%.exe: $(src_dir)/%.c clean compile
 	@mkdir -p $(bin_dir);
-	$(cc) $(cflags) -o $(bin_dir)/$(basename $@) $<
-	$(bin_dir)/$(basename $@)
+	@$(cc) $(cflags) $< -o $(bin_dir)/$(basename $@) $(obj_files)
+	@$(bin_dir)/$(basename $@)
+
+# Build and run a source file
+%.exe: %.cpp clean compile
+	@$(cxx) $(cxxflags) $< -o $(basename $@) $(obj_files)
+	@$(basename $@)
+
+# Build and run a source file if it is in source folder
+%.exe: $(src_dir)/%.cpp clean compile
+	@mkdir -p $(bin_dir);
+	@$(cxx) $(cxxflags) $< -o $(bin_dir)/$(basename $@) $(obj_files)
+	@$(bin_dir)/$(basename $@)
