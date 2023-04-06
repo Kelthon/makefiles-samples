@@ -32,13 +32,13 @@ cxxflags 		:= $(cxx_std) $(optional_cflags) $(extra_cflags) $(include_cflags)
 rm 				:= rm -fr
 
 # Define all source files and header files
-
 header_files 	:= $(wildcard *.h)$(wildcard $(include_dir)/*.h)$(wildcard *.hpp) $(wildcard $(include_dir)/*.hpp)
 source_files 	:= $(wildcard *.c)$(wildcard $(src_dir)/*.c)$(wildcard *.cpp)$(wildcard $(src_dir)/*.cpp)
 
 # Define all header files
 hxx_files		:= $(patsubst $(include_dir)/%.h,$(obj_dir)/%.o,$(header_files))
 obj_files		:= $(patsubst $(include_dir)/%.hpp,$(obj_dir)/%.o,$(hxx_files))
+c_obj 			:= $(filter $(obj_dir)/%.o,$(hxx_files))
 obj 			:= $(notdir $(obj_files))
 
 # Define Recipes
@@ -57,13 +57,22 @@ run:
 		echo "Not found $(appname)"; \
 	fi
 	
-
-# Build the app adding statics libs
+# Build the app adding statics libs using cxx compiler
 build: compile
 	@if [ -f $(target) ]; then \
 		$(cxx) $(cxxflags) $(target) -o $(appname) $(obj_files); \
 	else \
-		$(cxx) $(cxxflags) $(src_dir)/$(target) -o $(appname) $(obj_files); \
+		mkdir -p $(bin_dir); \
+		$(cxx) $(cxxflags) $(src_dir)/$(target) -o $(bin_dir)/$(appname) $(obj_files); \
+	fi
+
+# Build the app adding statics libs using cc compiler
+cbuild: compile
+	@if [ -f $(target) ]; then \
+		$(cc) $(cflags) $(target) -o $(appname) $(c_obj); \
+	else \
+		mkdir -p $(bin_dir); \
+		$(cc) $(cflags) $(src_dir)/$(target) -o $(bin_dir)/$(appname) $(c_obj); \
 	fi
 
 # Compile all source files
@@ -73,7 +82,7 @@ compile: clean $(obj)
 clean:
 	@$(rm) $(bin_dir) $(obj_dir) $(wildcard *.o) $(wildcard *.exe)
 
-# Compile a static lib expecifying full path to compilation if exists a source code and a header file
+# Compile a static lib if exists a source code and a header file
 %.o: %.c %.h
 	@$(cc) $(cflags) -c $< -o $@
 
@@ -82,31 +91,45 @@ clean:
 	@mkdir -p $(obj_dir);
 	@$(cc) $(cflags) -c $< -o $(obj_dir)/$(notdir $@)
 
+# Compile a static lib if exists a source code and a header file
 %.o: %.cpp %.hpp
 	@$(cxx) $(cxxflags) -c $< -o $@
 
+# Compile a static lib in obj folder if exists the source code is in source folder and header file is in include folder
 %.o: $(src_dir)/%.cpp $(include_dir)/%.hpp
 	@mkdir -p $(obj_dir);
 	@$(cxx) $(cxxflags) -c $< -o $(obj_dir)/$(notdir $@)
 
 # Build and run a source file
 %.exe: %.c clean compile
-	@$(cc) $(cflags) $< -o $(basename $@) $(obj_files)
+	@$(cc) $(cflags) $< -o $(basename $@) $(c_obj)
 	@$(basename $@)
 
 # Build and run a source file if it is in source folder
 %.exe: $(src_dir)/%.c clean compile
-	@mkdir -p $(bin_dir);
-	@$(cc) $(cflags) $< -o $(bin_dir)/$(basename $@) $(obj_files)
-	@$(bin_dir)/$(basename $@)
+	@if [ -f $< ]; then \
+		mkdir -p $(bin_dir);; \
+		$(cc) $(cflags) $< -o $(bin_dir)/$(basename $@) $(c_obj); \
+		$(bin_dir)/$(basename $@); \
+	else \
+		echo "Not found $<"; \
+	fi
 
 # Build and run a source file
 %.exe: %.cpp clean compile
-	@$(cxx) $(cxxflags) $< -o $(basename $@) $(obj_files)
-	@$(basename $@)
+	@if [ -f $< ]; then \
+		$(cxx) $(cxxflags) $< -o $(basename $@) $(obj_files); \
+		$(basename $@); \
+	else \
+		echo "Not found $<"; \
+	fi
 
 # Build and run a source file if it is in source folder
 %.exe: $(src_dir)/%.cpp clean compile
-	@mkdir -p $(bin_dir);
-	@$(cxx) $(cxxflags) $< -o $(bin_dir)/$(basename $@) $(obj_files)
-	@$(bin_dir)/$(basename $@)
+	@if [ -f $< ]; then \
+		mkdir -p $(bin_dir); \
+		$(cxx) $(cxxflags) $< -o $(bin_dir)/$(basename $@) $(obj_files); \
+		$(bin_dir)/$(basename $@); \
+	else \
+		echo "Not found $<"; \
+	fi
