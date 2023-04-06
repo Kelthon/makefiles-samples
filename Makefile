@@ -29,10 +29,11 @@ cflags := $(cc_std) $(optional_cflags) $(extra_cflags) $(include_cflags)
 cxxflags := $(cxx_std) $(optional_cflags) $(extra_cflags) $(include_cflags)
 
 # Define all source files and obj files
-c_files = $(wildcard $(src_dir)/*.c) $(wildcard *.c) 
-cxx_files = $(wildcard $(src_dir)/*.cpp) $(wildcard *.cpp) 
-source_files = $(c_files) $(cxx_files)
-obj_files = $(patsubst $(src_dir)/%.c, $(obj_dir)/%.o, $(source_files)) $(wildcard *.o)
+others_files = $(wildcard *.c) $(wildcard *.cpp) 
+source_files = $(wildcard $(src_dir)/*.c) $(wildcard $(src_dir)/*.cpp)
+others_obj_files = $(patsubst %.c, %.o, $(others_files))
+obj_files = $(patsubst $(src_dir)/%.c, $(obj_dir)/%.o, $(source_files)) $(others_obj_files)
+obj = $(notdir $(obj_files))
 
 # Define RM command 
 rm := rm -fr
@@ -40,11 +41,6 @@ rm := rm -fr
 # Define Recipes
 .PHONY: all run build compile clean %.o t
 
-t:
-	@echo "c: $(c_files)"
-	@echo "cpp: $(cxx_files)" 
-	@echo "src: $(source_files)"
-	@echo "obj: $(obj_files)"
 # Build and runs the app
 all: build run
 
@@ -57,15 +53,14 @@ build: compile
 	$(cxx) $(cxxflags) $(target) -o $(appname) $(obj_files)
 
 # Compile all source files
-compile: $(obj_files) clean
+compile: clean $(obj)
 
 # Remove all binaries
 clean:
-	@$(rm) $(bin_dir) $(obj_dir)
+	@$(rm) $(bin_dir) $(obj_dir) $(wildcard *.o) $(wildcard *.exe)
 
 # Compile a static lib expecifying full path to compilation if exists a source code and a header file
 %.o: %.c
-	@mkdir -p $(obj_dir);
 	$(cc) $(cflags) -c $< -o $@
 
 # Compile a static lib in obj folder if exists the source code is in source folder and header file is in include folder
