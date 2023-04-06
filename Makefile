@@ -1,78 +1,85 @@
-# Makefile to compile C/C++ source files on Windows v1.0
-
+# Makefile to compile C/C++ with MinGw
 # author: KLT
 # date: 2023/03/09
 
-cc 				= gcc
-appname 		= main
-target 			= main.c
-extra_cflags	= -fopenmp
-cc_std 			= -std=c11
-cflags 			= -Wextra -Wall -I
+# Defines program target and name
+appname 		:= main 
+target			:= main.c
 
-bin_dir 		= ./bin
-src_dir 		= ./src
-obj_dir 		= ./obj
-include_dir 	= ./include
+# Define compiler and compiler target
+cc 				:= gcc
+cxx				:= g++
+cc_std 			:= -std=c11
+cxx_std			:= -std=c++17
 
-source_files 	:= $(wildcard $(src_dir)/*.c)
-target_path		:= $(addprefix $(src_dir)/,$(target))
-filtered_files 	:= $(filter-out $(target_path),$(source_files))
-obj_paths 		:= $(patsubst $(src_dir)/%.c,$(obj_dir)/%.o,$(filtered_files))
-obj				:= $(notdir $(obj_paths))
+# Define a extra flags and diretives for compilation
+extra_cflags 	:= -fopenmp 
 
-.PHONY: all
-all: compile run
+# Define directories
+bin_dir 		:= ./bin
+src_dir 		:= ./src
+obj_dir 		:= ./obj
+lib_dir 		:= ./lib
+include_dir 	:= ./include
 
-run: $(bin_dir)/$(appname)
+# Define compiler flags
+optional_cflags := -Wextra -Wall
+include_cflags := -I $(include_dir)
+cflags := $(cc_std) $(optional_cflags) $(extra_cflags) $(include_cflags)
+cxxflags := $(cxx_std) $(optional_cflags) $(extra_cflags) $(include_cflags)
+
+# Define all source files and obj files
+c_files = $(wildcard $(src_dir)/*.c) $(wildcard *.c) 
+cxx_files = $(wildcard $(src_dir)/*.cpp) $(wildcard *.cpp) 
+source_files = $(c_files) $(cxx_files)
+obj_files = $(patsubst $(src_dir)/%.c, $(obj_dir)/%.o, $(source_files)) $(wildcard *.o)
+
+# Define RM command 
+rm := rm -fr
+
+# Define Recipes
+.PHONY: all run build compile clean %.o t
+
+t:
+	@echo "c: $(c_files)"
+	@echo "cpp: $(cxx_files)" 
+	@echo "src: $(source_files)"
+	@echo "obj: $(obj_files)"
+# Build and runs the app
+all: build run
+
+# Run the app 
+run: $(wildcard $(bin_dir)/$(appname))
 	$(bin_dir)/$(appname)
 
-compile: clean build
-	@echo KLT's Makefile to compile C/C++ source files on Windows v1.0
+# Build the app adding statics libs
+build: compile
+	$(cxx) $(cxxflags) $(target) -o $(appname) $(obj_files)
 
-build: $(obj)
-	$(cc) $(cflags) $(include_dir) $(src_dir)/$(target) -o $(bin_dir)/$(appname) $(obj_paths)
+# Compile all source files
+compile: $(obj_files) clean
 
-.PHONY: clean
+# Remove all binaries
 clean:
-	@del /q $(subst /,\,$(bin_dir))\*.* $(subst /,\,$(obj_dir))\*.*
+	@$(rm) $(bin_dir) $(obj_dir)
 
-%.o: $(src_dir)/%.c $(include_dir)/%.h
-	$(cc) $(cflags) $(include_dir) -c $< -o $(obj_dir)/$@
+# Compile a static lib expecifying full path to compilation if exists a source code and a header file
+%.o: %.c
+	@mkdir -p $(obj_dir);
+	$(cc) $(cflags) -c $< -o $@
 
-%.o: %.c %.h
-	$(cc) $(cflags) $(include_dir) -c $< -o $(obj_dir)/$@
+# Compile a static lib in obj folder if exists the source code is in source folder and header file is in include folder
+%.o: $(src_dir)/%.c
+	@mkdir -p $(obj_dir);
+	$(cc) $(cflags) -c $< -o $(obj_dir)/$(notdir $@)
 
-%.o: $(src_dir)/%.cpp $(include_dir)/%.hpp
-	$(cc) $(cflags) $(include_dir) -c $< -o $(obj_dir)/$@
+# Compiles and run a source file expecifying full path to compilation
+%.exe: %.c clean
+	$(cc) $(cflags) -o $(basename $@) $<
+	$(basename $@)
 
-%.o: %.cpp %.hpp
-	$(cc) $(cflags) $(include_dir) -c $< -o $(obj_dir)/$@
-
-%.c: $(src_dir)%.c
-	$(cc) $(cflags) $(include_dir) $< -o $(bin_dir)/$(addsuffix .exe,$(basename $@))
-
-%.c: %.c
-	$(cc) $(cflags) $(include_dir) $< -o $(bin_dir)/$(addsuffix .exe,$(basename $@))
-
-%.cpp: $(src_dir)%.cpp
-	$(cc) $(cflags) $(include_dir) $< -o $(bin_dir)/$(addsuffix .exe,$(basename $@))
-
-%.cpp: %.cpp
-	$(cc) $(cflags) $(include_dir) $< -o $(bin_dir)/$(addsuffix .exe,$(basename $@))
-
-%.exe: $(source_dir)/%.c
-	$(cc) $(cflags) $< -o $(bin_dir)/$@ $(opengl)
-	$(bin_dir)/$@
-
-%.exe: %.c
-	$(cc) $(cflags) $< -o $(bin_dir)/$@
-	$(bin_dir)/$@
-
-%.exe: $(source_dir)/%.cpp
-	$(cc) $(cflags) $< -o $(bin_dir)/$@ $(opengl)
-	$(bin_dir)/$@
-
-%.exe: %.cpp
-	$(cc) $(cflags) $< -o $(bin_dir)/$@
-	$(bin_dir)/$@
+# Compile and run a source file if the file is inside source folder
+%.exe: $(src_dir)/%.c clean
+	@mkdir -p $(bin_dir);
+	$(cc) $(cflags) -o $(bin_dir)/$(basename $@) $<
+	$(bin_dir)/$(basename $@)
