@@ -3,43 +3,43 @@
 # date: 2023/03/09
 
 # Defines program target and name
-appname 		:= main 
-target			:= main.c
+APPNAME 		:= main 
+TARGET			:= main.c
 
 # Define compiler and compiler target
-cc 				:= gcc
-cxx				:= g++
-cc_std 			:= -std=c11
-cxx_std			:= -std=c++17
+CC 				:= gcc
+CXX				:= g++
+CC_STD 			:= -std=c11
+CXX_STD			:= -std=c++17
 
 # Define a extra flags and diretives for compilation
-extra_cflags 	:= -fopenmp
+EXTRA_FLAGS 	:= -fopenmp -lopengl32 -lglu32 -lfreeglut
 
 # Define directories
-bin_dir 		:= ./bin
-src_dir 		:= ./src
-obj_dir 		:= ./obj
-lib_dir 		:= ./lib
-include_dir 	:= ./include
+BIN_DIR 		:= ./bin
+SRC_DIR 		:= ./src
+OBJ_DIR 		:= ./OBJ
+LIB_DIR 		:= ./lib
+INCLUDE_DIR 	:= ./include
 
 # Define compiler flags
-optional_cflags := -Wextra -Wall
-include_cflags 	:= -I $(include_dir)
-cflags 			:= $(cc_std) $(optional_cflags) $(extra_cflags) $(include_cflags)
-cxxflags 		:= $(cxx_std) $(optional_cflags) $(extra_cflags) $(include_cflags)
+OPTIONAL_FLAGS := -Wextra -Wall
+INCLUDE_FLAG 	:= -I $(INCLUDE_DIR)
+CFLAGS 			:= $(CC_STD) $(OPTIONAL_FLAGS) $(EXTRA_FLAGS) $(INCLUDE_FLAG)
+CXXFLAGS 		:= $(CXX_STD) $(OPTIONAL_FLAGS) $(EXTRA_FLAGS) $(INCLUDE_FLAG)
 
 # Define RM command 
-rm 				:= rm -fr
+RM 				:= rm -fr
 
 # Define all source files and header files
-header_files 	:= $(wildcard *.h)$(wildcard $(include_dir)/*.h)$(wildcard *.hpp) $(wildcard $(include_dir)/*.hpp)
-source_files 	:= $(wildcard *.c)$(wildcard $(src_dir)/*.c)$(wildcard *.cpp)$(wildcard $(src_dir)/*.cpp)
+HEADER_FILES 	:= $(wildcard *.h)$(wildcard $(INCLUDE_DIR)/*.h)$(wildcard *.hpp) $(wildcard $(INCLUDE_DIR)/*.hpp)
+SOURCE_FILES 	:= $(wildcard *.c)$(wildcard $(SRC_DIR)/*.c)$(wildcard *.cpp)$(wildcard $(SRC_DIR)/*.cpp)
 
 # Define all header files
-hxx_files		:= $(patsubst $(include_dir)/%.h,$(obj_dir)/%.o,$(header_files))
-obj_files		:= $(patsubst $(include_dir)/%.hpp,$(obj_dir)/%.o,$(hxx_files))
-c_obj 			:= $(filter $(obj_dir)/%.o,$(hxx_files))
-obj 			:= $(notdir $(obj_files))
+HXX_FILES		:= $(patsubst $(INCLUDE_DIR)/%.h,$(OBJ_DIR)/%.o,$(HEADER_FILES))
+OBJ_FILES		:= $(patsubst $(INCLUDE_DIR)/%.hpp,$(OBJ_DIR)/%.o,$(HXX_FILES))
+C_OBJ 			:= $(filter $(OBJ_DIR)/%.o,$(HXX_FILES))
+OBJ 			:= $(notdir $(OBJ_FILES))
 
 # Define Recipes
 .PHONY: all run build compile clean %.o %.exe
@@ -49,87 +49,78 @@ all: build run
 
 # Run the app 
 run:
-	@if [ -f $(appname)]; then\
-		$(appname); \
-	elif [ -f $(bin_dir)/$(appname) ]; then \
-		$(bin_dir)/$(appname); \
+	@if [ -f $(APPNAME)]; then\
+		$(APPNAME); \
+	elif [ -f $(BIN_DIR)/$(APPNAME) ]; then \
+		$(BIN_DIR)/$(APPNAME); \
 	else \
-		echo "Not found $(appname)"; \
+		echo "Not found $(APPNAME)"; \
 	fi
 	
-# Build the app adding statics libs using cxx compiler
+# Build the app adding statics libs using CXX compiler
 build: compile
-	@if [ -f $(target) ]; then \
-		$(cxx) $(cxxflags) $(target) -o $(appname) $(obj_files); \
+	@if [ -f $(TARGET) ]; then \
+		$(CXX) $(CXXFLAGS) $(TARGET) -o $(APPNAME) $(OBJ_FILES) $(EXTRA_FLAGS); \
 	else \
-		mkdir -p $(bin_dir); \
-		$(cxx) $(cxxflags) $(src_dir)/$(target) -o $(bin_dir)/$(appname) $(obj_files); \
+		mkdir -p $(BIN_DIR); \
+		$(CXX) $(CXXFLAGS) $(SRC_DIR)/$(TARGET) -o $(BIN_DIR)/$(APPNAME) $(OBJ_FILES) $(EXTRA_FLAGS); \
 	fi
 
-# Build the app adding statics libs using cc compiler
+# Build the app adding statics libs using CC compiler
 cbuild: compile
-	@if [ -f $(target) ]; then \
-		$(cc) $(cflags) $(target) -o $(appname) $(c_obj); \
+	@if [ -f $(TARGET) ]; then \
+		$(CC) $(CFLAGS) $(TARGET) -o $(APPNAME) $(C_OBJ) $(EXTRA_FLAGS); \
 	else \
-		mkdir -p $(bin_dir); \
-		$(cc) $(cflags) $(src_dir)/$(target) -o $(bin_dir)/$(appname) $(c_obj); \
+		mkdir -p $(BIN_DIR); \
+		$(CC) $(CFLAGS) $(SRC_DIR)/$(TARGET) -o $(BIN_DIR)/$(APPNAME) $(C_OBJ) $(EXTRA_FLAGS); \
 	fi
 
 # Compile all source files
-compile: clean $(obj)
+compile: clean $(OBJ)
 
 # Remove all binaries
 clean:
-	@$(rm) $(bin_dir) $(obj_dir) $(wildcard *.o) $(wildcard *.exe)
+	@$(RM) $(BIN_DIR) $(OBJ_DIR) $(wildcard *.o) $(wildcard *.exe)
+
+version:
+	@echo "v2.0.0"
 
 # Compile a static lib if exists a source code and a header file
 %.o: %.c %.h
-	@$(cc) $(cflags) -c $< -o $@
+	@$(CC) $(CFLAGS) -c $< -o $@ $(EXTRA_FLAGS)
 
-# Compile a static lib in obj folder if exists the source code is in source folder and header file is in include folder
-%.o: $(src_dir)/%.c $(include_dir)/%.h
-	@mkdir -p $(obj_dir);
-	@$(cc) $(cflags) -c $< -o $(obj_dir)/$(notdir $@)
+# Compile a static lib in OBJ folder if exists the source code is in source folder and header file is in include folder
+%.o: $(SRC_DIR)/%.c $(INCLUDE_DIR)/%.h
+	@mkdir -p $(OBJ_DIR);
+	@$(CC) $(CFLAGS) -c $< -o $(OBJ_DIR)/$(notdir $@) $(EXTRA_FLAGS)
 
 # Compile a static lib if exists a source code and a header file
 %.o: %.cpp %.hpp
-	@$(cxx) $(cxxflags) -c $< -o $@
+	@$(CXX) $(CXXFLAGS) -c $< -o $@ $(EXTRA_FLAGS)
 
-# Compile a static lib in obj folder if exists the source code is in source folder and header file is in include folder
-%.o: $(src_dir)/%.cpp $(include_dir)/%.hpp
-	@mkdir -p $(obj_dir);
-	@$(cxx) $(cxxflags) -c $< -o $(obj_dir)/$(notdir $@)
+# Compile a static lib in OBJ folder if exists the source code is in source folder and header file is in include folder
+%.o: $(SRC_DIR)/%.cpp $(INCLUDE_DIR)/%.hpp
+	@mkdir -p $(OBJ_DIR);
+	@$(CXX) $(CXXFLAGS) -c $< -o $(OBJ_DIR)/$(notdir $@) $(EXTRA_FLAGS)
 
 # Build and run a source file
 %.exe: %.c clean compile
-	@$(cc) $(cflags) $< -o $(basename $@) $(c_obj)
+	@$(CC) $(CFLAGS) $< -o $(basename $@) $(C_OBJ) $(EXTRA_FLAGS)
 	@$(basename $@)
 
 # Build and run a source file if it is in source folder
-%.exe: $(src_dir)/%.c clean compile
-	@if [ -f $< ]; then \
-		mkdir -p $(bin_dir);; \
-		$(cc) $(cflags) $< -o $(bin_dir)/$(basename $@) $(c_obj); \
-		$(bin_dir)/$(basename $@); \
-	else \
-		echo "Not found $<"; \
-	fi
+%.exe: $(SRC_DIR)/%.c clean compile
+	@mkdir -p $(BIN_DIR)
+	@$(CC) $(CFLAGS) $< -o $(BIN_DIR)/$(basename $@) $(C_OBJ) $(EXTRA_FLAGS)
+	@$(BIN_DIR)/$(basename $@)
 
 # Build and run a source file
 %.exe: %.cpp clean compile
-	@if [ -f $< ]; then \
-		$(cxx) $(cxxflags) $< -o $(basename $@) $(obj_files); \
-		$(basename $@); \
-	else \
-		echo "Not found $<"; \
-	fi
+	@$(CXX) $(CXXFLAGS) $< -o $(basename $@) $(OBJ_FILES) $(EXTRA_FLAGS)
+	@$(basename $@)
 
 # Build and run a source file if it is in source folder
-%.exe: $(src_dir)/%.cpp clean compile
-	@if [ -f $< ]; then \
-		mkdir -p $(bin_dir); \
-		$(cxx) $(cxxflags) $< -o $(bin_dir)/$(basename $@) $(obj_files); \
-		$(bin_dir)/$(basename $@); \
-	else \
-		echo "Not found $<"; \
-	fi
+%.exe: $(SRC_DIR)/%.cpp clean compile
+	@mkdir -p $(BIN_DIR)
+	@$(CXX) $(CXXFLAGS) $< -o $(BIN_DIR)/$(basename $@) $(OBJ_FILES) $(EXTRA_FLAGS)
+	@$(BIN_DIR)/$(basename $@)
