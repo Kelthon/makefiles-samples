@@ -18,7 +18,7 @@ EXTRA_FLAGS 	:= -fopenmp -lopengl32 -lglu32 -lfreeglut
 # Define directories
 BIN_DIR 		:= ./bin
 SRC_DIR 		:= ./src
-OBJ_DIR 		:= ./OBJ
+OBJ_DIR 		:= ./obj
 LIB_DIR 		:= ./lib
 INCLUDE_DIR 	:= ./include
 
@@ -36,7 +36,9 @@ HEADER_FILES 	:= $(wildcard *.h)$(wildcard $(INCLUDE_DIR)/*.h)$(wildcard *.hpp) 
 SOURCE_FILES 	:= $(wildcard *.c)$(wildcard $(SRC_DIR)/*.c)$(wildcard *.cpp)$(wildcard $(SRC_DIR)/*.cpp)
 
 # Define all header files
-HXX_FILES		:= $(patsubst $(INCLUDE_DIR)/%.h,$(OBJ_DIR)/%.o,$(HEADER_FILES))
+SRC_INC			:= $(patsubst $(SRC_DIR)/%.c,$(INCLUDE_DIR)/%.h,$(SOURCE_FILES))
+FILTER_INC		:= $(filter $(SRC_INC),$(HEADER_FILES))
+HXX_FILES		:= $(patsubst $(INCLUDE_DIR)/%.h,$(OBJ_DIR)/%.o,$(FILTER_INC))
 OBJ_FILES		:= $(patsubst $(INCLUDE_DIR)/%.hpp,$(OBJ_DIR)/%.o,$(HXX_FILES))
 C_OBJ 			:= $(filter $(OBJ_DIR)/%.o,$(HXX_FILES))
 OBJ 			:= $(notdir $(OBJ_FILES))
