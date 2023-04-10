@@ -5,7 +5,7 @@
 # template version
 v=v2.0.1
 
-# Defines program target and name
+# Defines build target and program output name
 APPNAME 		:= main 
 TARGET			:= main.c
 
