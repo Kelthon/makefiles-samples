@@ -2,11 +2,34 @@
 
 This repo contains templates of makefiles to compile C/C++ source files using MinGW
 
+> In development
+
+## Contents table
+
+1. [getting started](#getting-started)
+1. [building project](#building-a-project)
+1. [building a project on windows](#building-a-project-on-windows)
+1. [building a project on linux](#building-a-project-on-linux)
+1. [how to use](#how-to-use)
+1. [recipes](#recipes)
+    - [run](#run)
+    - [build](#build)
+    - [cbuild](#cbuild)
+    - [compile](#compile)
+    - [clean](#clean)
+    - [template-version](#template-version)
+    - [%.o](#o)
+    - [%.exe](#exe)
+
+1. [customization](#customization)
+
 ## Getting started
 
-To compile your C/C++ code using Makefile you should be copy the template on `<project-dir>`. You can modify the variables and recipes to better compile your code or project and to invoke the `mingw32-make` or `make` using a recipe.
+First you must be certify that `MinGw` or `make`, and `C/C++` compiler are installed.
 
-To build and run a simple file you can use the target `%.exe` writing the basename of file with `.exe` suffix. This target will do with the make compiling and, if no have problems in compilation, run the file. For example to build and execute a OpenGl program, that draw a triangle in the screen, named `triangle.c`, you can use `triangle.exe`
+To compile your C/C++ code using Makefile you must be copy the template on `<project-dir>`. You can modify the variables and recipes to better compile your code or project and to invoke the `mingw32-make` or `make` using a recipe.
+
+To build and run a simple file you can use the target `%.exe` writing the basename of file with `.exe` suffix. This target will do with the make compiling and, if no have problems in compilation, run the file. For example to build and execute a OpenGl program, that draw a triangle in the screen, named `triangle.c`, you can use `triangle.exe`. [See more in How to use](#how-to-use)
 
 ```sh
 cp .\Makefile <project-dir>
@@ -85,7 +108,13 @@ make custom-recipe
 
 ## How to use
 
-To compile you project or file you should be to call a any recipe
+To compile you project or file you must be call `mingw32-make` or `make` with a compilation recipe or target `make <recipe> <args>`.
+
+```sh
+make clean
+make cbuild
+make run
+```
 
 ### Recipes
 
