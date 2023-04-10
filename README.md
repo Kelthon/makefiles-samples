@@ -1,18 +1,19 @@
-# Makefiles templates
+# Makefiles samples
 
-this repo contains templates of makefiles to compile C/C++ source files using MinGW
+This repo contains templates of makefiles to compile C/C++ source files using MinGW
 
 ## Getting started
 
-To compile your C/C++ code using Makefile you should be copy the template on `<project-dir>` and invoke a `mingw32-make` or `make`. You can modify the params to compile your code..
+To compile your C/C++ code using Makefile you should be copy the template on `<project-dir>`. You can modify the variables and recipes to better compile your code or project and to invoke the `mingw32-make` or `make` using a recipe.
 
-To build and run a unique file you can use the basename of file with `.exe` suffix. For example to build and execute a OpenGl program named triangle.c a can use `triangle.exe`
+To build and run a simple file you can use the target `%.exe` writing the basename of file with `.exe` suffix. This target will do with the make compiling and, if no have problems in compilation, run the file. For example to build and execute a OpenGl program, that draw a triangle in the screen, named `triangle.c`, you can use `triangle.exe`
 
 ```sh
 cp .\Makefile <project-dir>
 mingw32-make triangle.exe
 ```
 
+Output:
 !["Program Output: OpenGL Triangle"](./public/triangle.png "Output: OpenGL Triangle")
 
 ### On windows
