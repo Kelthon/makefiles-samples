@@ -2,6 +2,8 @@
 # author: KLT
 # date: 2023/03/09
 
+v=v2.0.1
+
 # Defines program target and name
 APPNAME 		:= main 
 TARGET			:= main.c
@@ -84,8 +86,8 @@ compile: clean $(OBJ)
 clean:
 	@$(RM) $(BIN_DIR) $(OBJ_DIR) $(wildcard *.o) $(wildcard *.exe)
 
-version:
-	@echo "v2.0.0"
+template-version:
+	@echo $(v)
 
 # Compile a static lib if exists a source code and a header file
 %.o: %.c %.h
