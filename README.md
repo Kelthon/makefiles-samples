@@ -16,9 +16,30 @@ mingw32-make triangle.exe
 Output:
 !["Program Output: OpenGL Triangle"](./public/triangle.png "Output: OpenGL Triangle")
 
-### On windows
+### Building a project
 
-On Windows you should be use `mingw32-make` to compile program or project. Or you can use a batch script to call `mingw32-make.exe` with alias `make`, like e Linux systems. For this you should be copy a `make.bat` on MinGw binaries folder `<MinGw-dir>/bin`.
+Another way to compile projects, files or libs is using the `build` and `run` recipes, which will compile your code and all dependencies and run the code.
+
+To use this recipe first you must modify the makefile variables. You can choose default compiler, program name, build target, file directory and build flags, etc. [See more in customization](#customization)
+
+```Makefile
+CC := gcc # C default compiler
+APPNAME := main # Program output name
+TARGET := main.c # Build target
+SRC_DIR := ./src # Source directory
+INCLUDE_DIR := ./include # Headers directory
+EXTRA_FLAGS := -fopenmp # extra flags to compilation
+```
+
+When to compiler anything the result will be:
+
+```sh
+gcc -I ./include -fopenmp ./src/main.c -o ./bin/main.exe
+```
+
+### Building a project on Windows
+
+On Windows systems you must be use `mingw32-make` to compile program or project. Or you can use a batch script to call `mingw32-make.exe` with alias `make`, like e Linux systems. For this you should be copy a `make.bat` on MinGw binaries folder `<MinGw-dir>/bin`.
 
 ```sh
 cp .\make.bat C:/MinGw/bin
@@ -30,12 +51,13 @@ make template-version
 >> v2.0.0
 ```
 
-### On linux
+### Building a project on Linux
 
 The makefile template went project to be executed in Windows systems by MinGw, It should be compatible with Linux system using directly `make`, however if necessary you can customize the recipes to use native fuctions of Linux.
 
+#### Makefile
+
 ```Makefile
-# Makefile
 custom-recipe:
     INPUT = ""
     read INPUT
@@ -48,9 +70,13 @@ custom-recipe:
 
 ```
 
+#### shell
+
 ```sh
 make custom-recipe
 ```
+
+#### output
 
 ```sh
 >> main.c
@@ -79,7 +105,7 @@ To compile you project or file you should be to call a any recipe
 
 #### %.exe
 
-### Customizing
+### Customization
 
 You can customize the compilation proccess change or alter variables and recipes on Makefile
 
